@@ -1,0 +1,3 @@
+# Estrategia 1: ROM combinacional generada por el assembler y RAM de datos
+# reducida a una palabra, porque el juego no usa memoria de datos interna.
+VERILOG_DEFINES: []

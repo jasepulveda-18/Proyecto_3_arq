@@ -17,10 +17,10 @@
 #   0x80000008: botones
 #   0x8000000C: contador de ciclos de 32 bits
 #
-# Constantes de tiempo para el reloj de 25 MHz de la Go Board:
-#   3 segundos = 75,000,000 ciclos
-#   1 segundo  = 25,000,000 ciclos
-#   0.1 s      =  2,500,000 ciclos
+# Constantes de tiempo para CLOCK_PERIOD = 100 ns (10 MHz):
+#   3 segundos = 30,000,000 ciclos
+#   1 segundo  = 10,000,000 ciclos
+#   0.1 s      =  1,000,000 ciclos
 #
 # Registros persistentes:
 #   x2 = base de perifericos
@@ -35,6 +35,18 @@
 
 .section .text
 .global _start
+
+# Los simbolos permiten acortar las esperas al ensamblar la version de
+# simulacion mediante opciones -D, sin mantener otra copia de game.s.
+.equ WAIT_3S_HI,       0x01C9C
+.equ WAIT_3S_LO,       896
+.equ TENTH_HI,         0x000F4
+.equ TENTH_LO,         576
+.equ ERROR_1S_HI,      0x00989
+.equ ERROR_1S_LO,      1664
+.equ NUM_ROUNDS,       10
+.equ AVERAGE_DIVISOR,  10
+.equ AVERAGE_STEP,     -10
 
 _start:
     # Direcciones de los perifericos.
@@ -75,9 +87,9 @@ round_start:
     sw   x10, 0(x4)
     lw   x10, 0(x6)          # ciclo inicial de la espera
 
-    # x11 = 75,000,000 = 0x047868C0.
-    lui  x11, 0x04787
-    addi x11, x11, -1856
+    # x11 = 30,000,000 ciclos (tres segundos a 10 MHz).
+    lui  x11, WAIT_3S_HI
+    addi x11, x11, WAIT_3S_LO
 
 wait_three_seconds:
     lw   x12, 0(x6)
@@ -128,9 +140,9 @@ correct_button:
     # Convertir ciclos a decimas mediante restas repetidas.
     sub  x15, x14, x12       # ciclos de respuesta
 
-    # x10 = 2,500,000 ciclos por decima = 0x002625A0.
-    lui  x10, 0x00262
-    addi x10, x10, 1440
+    # x10 = 1,000,000 ciclos por decima a 10 MHz.
+    lui  x10, TENTH_HI
+    addi x10, x10, TENTH_LO
     addi x12, x0, 0          # tiempo en decimas
 
 cycles_to_tenths:
@@ -144,7 +156,7 @@ time_converted:
     addi x7, x7, 1           # una respuesta correcta mas
     jal  x1, display_tenths
 
-    addi x10, x0, 10
+    addi x10, x0, NUM_ROUNDS
     beq  x7, x10, wait_tenth_release
 
 wait_correct_release:
@@ -181,8 +193,8 @@ wait_wrong_release:
 
     # Mantener EE durante un segundo antes de reiniciar la ronda.
     lw   x10, 0(x6)
-    lui  x11, 0x017D8        # 25,000,000 = 0x017D7840
-    addi x11, x11, -1984
+    lui  x11, ERROR_1S_HI     # 10,000,000 ciclos a 10 MHz
+    addi x11, x11, ERROR_1S_LO
 
 wait_error_second:
     lw   x12, 0(x6)
@@ -194,11 +206,11 @@ calculate_average:
     # Promedio entero en decimas: suma / 10, truncando el residuo.
     add  x15, x8, x0
     addi x12, x0, 0
-    addi x10, x0, 10
+    addi x10, x0, AVERAGE_DIVISOR
 
 average_loop:
     bltu x15, x10, average_ready
-    addi x15, x15, -10
+    addi x15, x15, AVERAGE_STEP
     addi x12, x12, 1
     jal  x0, average_loop
 

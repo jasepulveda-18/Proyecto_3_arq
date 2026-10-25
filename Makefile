@@ -12,16 +12,21 @@
 TOP  ?= game_top
 PCF  := goboard.pcf
 GAME_HEX := sw/game.hex
+ASIC_GEN := rtl/asic/generated/pochoco_game_rom.v \
+	            rtl/asic/generated/pochoco_unified_ff_memory.v \
+	            rtl/asic/generated/program_metadata.json
 
 # RTL Sources
-SRC  := $(wildcard ./rtl/*.v ./rtl/**/*.v)
+# El flujo FPGA excluye deliberadamente rtl/asic, donde existe otra
+# implementacion del archivo de registros con el mismo nombre de modulo.
+SRC  := $(wildcard ./rtl/*.v ./rtl/espino_core/*.v)
 
 # Build Targets
 JSON := $(TOP).json
 ASC  := $(TOP).asc
 BIN  := $(TOP).bin
 
-.PHONY: all prog clean stats game test
+.PHONY: all prog clean stats game test asic-generate asic-check sim-check
 
 # Default target
 all: prog
@@ -33,10 +38,22 @@ $(JSON): $(SRC) $(GAME_HEX)
 $(GAME_HEX): sw/game.s sw/assembler.py
 	$(MAKE) -C sw game.hex
 
-game: $(GAME_HEX)
+game:
+	$(MAKE) -C sw game
+
+asic-generate: $(ASIC_GEN)
+
+$(ASIC_GEN): sw/game.s sw/assembler.py
+	$(MAKE) -C sw game
 
 test:
 	$(MAKE) -C sw test
+
+asic-check: asic-generate
+	./scripts/check_asic_rtl.sh
+
+sim-check:
+	./scripts/run_functional_equivalence.sh
 
 # Step 2: Place and Route using NextPNR
 $(ASC): $(JSON) $(PCF)

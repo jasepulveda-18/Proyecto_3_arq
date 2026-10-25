@@ -39,6 +39,119 @@ make all        # sintetiza, genera el bitstream y programa la Go Board
 `make all` requiere la Go Board conectada. El top-level sintetizado es
 `rtl/game_top.v`, que selecciona `sw/game.hex` como imagen de memoria.
 
+## Proyecto 3: implementacion ASIC con GF180MCU
+
+El Proyecto 3 conserva el juego y Espino, pero agrega un flujo ASIC separado
+del flujo de la Go Board. El top-level fisico es `rtl/asic/asic_top.v`; recibe
+reloj y reset externos y no contiene primitivas de iCE40, `$readmemh`, bloques
+`initial` ni el reset de encendido propio de la FPGA.
+
+El reloj final es de 10 MHz (`CLOCK_PERIOD = 100 ns`). Por eso `game.s` usa:
+
+- 30 000 000 ciclos para tres segundos.
+- 10 000 000 ciclos para un segundo de error.
+- 1 000 000 ciclos por decima de segundo.
+
+El assembler genera simultaneamente tres representaciones del mismo programa:
+
+```text
+sw/game.s
+  +-- sw/game.hex                                      (FPGA)
+  +-- rtl/asic/generated/pochoco_game_rom.v            (ROM + RAM reducida)
+  +-- rtl/asic/generated/pochoco_unified_ff_memory.v   (memoria unificada FF)
+```
+
+La metadata generada registra 111 palabras de instruccion y cero palabras de
+datos usadas por el juego. Esto ultimo se comprobo revisando que todos sus
+`lw`/`sw` apuntan a los perifericos, no a RAM interna.
+
+### Comandos de trabajo
+
+Los comandos de esta seccion se ejecutan desde la raiz de
+`Proyecto_3_arq`. No hace falta borrar manualmente `game.hex`: `make game`
+lo vuelve a generar cuando cambia `game.s` o `assembler.py`.
+
+```bash
+make game          # regenera el .hex y ambas memorias ASIC
+make test          # ejecuta las 12 pruebas del assembler
+make asic-check    # elabora y sintetiza ambas arquitecturas con Yosys
+make sim-check     # compara el juego en RTL y post-sintesis, ciclo por ciclo
+```
+
+### Instalacion reproducible del flujo ASIC en macOS
+
+La implementacion fisica se probo con estas versiones exactas:
+
+- LibreLane `3.0.16`.
+- PDK `gf180mcuD`, revision Open_PDKs
+  `54435919abffb937387ec956209f9cf5fd2dfbee`.
+- Biblioteca de celdas `gf180mcu_fd_sc_mcu7t5v0`.
+
+Primero se instala Nix siguiendo el instalador oficial de
+[nixos.org](https://nixos.org/download/). Despues de cerrar y abrir Terminal,
+se descarga la version usada de LibreLane:
+
+```bash
+cd ~/Desktop
+curl -L https://github.com/librelane/librelane/archive/refs/tags/3.0.16.tar.gz \
+  -o LibreLane-3.0.16.tar.gz
+tar -xzf LibreLane-3.0.16.tar.gz
+cd LibreLane-3.0.16
+nix-shell
+librelane --version
+```
+
+Los comandos siguientes deben ejecutarse dentro de ese `nix-shell`. En la
+primera corrida, LibreLane descarga automaticamente el PDK en `~/.ciel`; no
+hay que copiarlo al repositorio. En otra terminal o despues de reiniciar el
+computador se vuelve a entrar asi:
+
+```bash
+cd ~/Desktop/LibreLane-3.0.16
+nix-shell
+cd ~/Desktop/Proyecto_3_arq
+```
+
+Si el repositorio se guardo en otra carpeta, solo cambia las dos rutas de
+`cd`. Para comprobar la instalacion y el RTL antes de una corrida larga:
+
+```bash
+make game
+make test
+make asic-check
+make sim-check
+```
+
+### Corridas fisicas y recoleccion de resultados
+
+Una corrida recibe cuatro argumentos: estrategia de memoria, periodo en ns,
+utilizacion objetivo y nombre de la corrida. Las corridas finales a 10 MHz son:
+
+```bash
+./scripts/run_librelane.sh rom 100 40 final_rom
+./scripts/run_librelane.sh unified 100 40 final_unified
+```
+
+El barrido exigido de timing (100, 80 y 60 ns) y floorplan (30, 40 y 50 %)
+se ejecuta con:
+
+```bash
+./scripts/run_required_sweeps.sh rom
+python3 scripts/collect_librelane_metrics.py
+```
+
+El CSV queda en `evidence/librelane_metrics.csv`. Cada corrida conserva sus
+reportes, metricas y vistas finales bajo `librelane/runs/<nombre>/`. Para
+repetir una corrida se recomienda usar otro nombre; asi no se mezclan sus
+resultados con una anterior.
+
+### Diferencia entre los dos flujos
+
+- **FPGA:** `make all` sintetiza `rtl/game_top.v`, genera `game_top.bin` y lo
+  programa en la Go Board. Este flujo usa las herramientas iCE40.
+- **ASIC:** `run_librelane.sh` sintetiza `rtl/asic/asic_top.v` con las celdas
+  GF180MCU y genera layout, reportes y GDSII. No programa la placa.
+
 ## Repository Structure
 
 The hardware is written in Verilog and divided into these main categories:
