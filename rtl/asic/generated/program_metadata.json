@@ -1,0 +1,9 @@
+{
+  "data_words_used_by_game": 0,
+  "instruction_bytes_used": 444,
+  "instruction_words_used": 111,
+  "program_sha256": "31cd66c73fc11b0a401ee0e2dd937ab0817bffedd4eecd46afa7eda37b40c43d",
+  "source": "game.s",
+  "source_sha256": "3900d55ae75b9236beaf069ad4a527db4813b129b8da8018b5c727cb0cfc3446",
+  "unified_memory_words_implemented": 128
+}

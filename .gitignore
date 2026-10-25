@@ -11,6 +11,7 @@ __pycache__/
 
 # FPGA Synthesis & Bitstream Artifacts (Yosys / nextpnr / icepack)
 *.json
+!rtl/asic/generated/program_metadata.json
 *.asc
 *.bin
 *.log
@@ -20,3 +21,12 @@ module_stats/
 sim/sim
 *.vcd
 *.csv
+!evidence/*.csv
+
+# ASIC flow artifacts
+build/
+sim/generated/
+librelane/runs/
+final/
+gf180mcu/
+.ciel/
