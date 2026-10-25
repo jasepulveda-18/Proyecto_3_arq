@@ -1,95 +1,61 @@
-# Pochoco SoC & Espino Core
+# Proyecto 3 - Pochoco SoC de RTL a ASIC
 
-> Meet Pochoco SoC and Espino Core. Inspired by the native flora of the Pochoco trails, it is an entry-level, highly efficient architecture designed to flourish in resource-constrained environments.
+Este repositorio contiene la adaptación a ASIC del Pochoco SoC con el juego de
+reflejos desarrollado en el Proyecto 2. El objetivo es llevar el diseño desde
+RTL hasta GDSII usando LibreLane y el PDK GF180MCU.
 
-![Pochoco SoC Architecture](pochoco_soc.svg)
+El resultado es un **macro digital implementado con celdas estándar**, no un
+chip completo con pads y encapsulado. El top-level del flujo ASIC es
+`rtl/asic/asic_top.v` y expone terminales lógicos para reloj, reset, botones,
+LEDs, displays de 7 segmentos y SPI.
 
-Welcome to the repository! This project contains the RTL for a custom 32-bit processor and its surrounding System-on-Chip (SoC) designed for FPGA deployment. The design is kept straightforward to help explore and understand computer architecture fundamentals.
+## Parámetros de la corrida final
 
-This is meant to be forked, not just cloned. You'll be poking around the RTL, so make it your own, we won't judge (we might even be a little proud).
+- Período de reloj (`CLOCK_PERIOD`): **100 ns** (10 MHz).
+- Utilización de core (`FP_CORE_UTIL`): **40 %**.
+- PDK: `gf180mcuD`.
+- Biblioteca de celdas: `gf180mcu_fd_sc_mcu7t5v0`.
 
-## Proyecto 2: juego de reflejos
+Para trabajar a 10 MHz, `sw/game.s` utiliza 30 000 000 ciclos para la espera de
+tres segundos, 10 000 000 ciclos para el mensaje de error y 1 000 000 de ciclos
+por décima de segundo.
 
-Este fork agrega un juego de reflejos para la Go Board. Al arrancar, los
-displays muestran `88` para indicar que el programa esta listo; la partida se
-inicia presionando y soltando cualquier boton. Cada ronda enciende los cuatro LEDs
-durante tres segundos, selecciona un LED objetivo, mide la respuesta en decimas
-de segundo y conserva diez tiempos correctos. Un boton incorrecto muestra `EE`
-y reinicia solamente la ronda actual. El tiempo del decimo acierto permanece
-visible hasta presionar y soltar cualquier boton; entonces se muestra el
-promedio.
+## Versiones utilizadas
 
-El flujo del software es:
+| Herramienta o dependencia | Versión |
+|---|---|
+| LibreLane | `3.0.16` |
+| Yosys del entorno LibreLane | `0.62` (`7326bb7d6641500ecb285c291a54a662cb1e76cf`) |
+| OpenROAD | build `2026-02-17` (`dcf36133a369abc8f3c5e5738cd4d82e4903c0e0`) |
+| KLayout | `0.30.7` |
+| Magic | `8.3.623` |
+| Netgen | `1.5.316` |
+| Icarus Verilog usado en simulación | `14.0` (`s20260301-391-g64f13540a`) |
+| PDK | `gf180mcuD`, revisión Open_PDKs `54435919abffb937387ec956209f9cf5fd2dfbee` |
+| Biblioteca estándar | `gf180mcu_fd_sc_mcu7t5v0` |
 
-```text
-sw/game.s -> sw/assembler.py -> sw/game.hex -> memoria de Pochoco -> Espino Core
-```
-
-`game.hex` se genera con el assembler desarrollado para el proyecto; no depende
-de un assembler RISC-V externo.
-
-Desde la raiz del repositorio:
-
-```bash
-make game       # regenera sw/game.hex desde sw/game.s
-make test       # ejecuta las pruebas del assembler
-make all        # sintetiza, genera el bitstream y programa la Go Board
-```
-
-`make all` requiere la Go Board conectada. El top-level sintetizado es
-`rtl/game_top.v`, que selecciona `sw/game.hex` como imagen de memoria.
-
-## Proyecto 3: implementacion ASIC con GF180MCU
-
-El Proyecto 3 conserva el juego y Espino, pero agrega un flujo ASIC separado
-del flujo de la Go Board. El top-level fisico es `rtl/asic/asic_top.v`; recibe
-reloj y reset externos y no contiene primitivas de iCE40, `$readmemh`, bloques
-`initial` ni el reset de encendido propio de la FPGA.
-
-El reloj final es de 10 MHz (`CLOCK_PERIOD = 100 ns`). Por eso `game.s` usa:
-
-- 30 000 000 ciclos para tres segundos.
-- 10 000 000 ciclos para un segundo de error.
-- 1 000 000 ciclos por decima de segundo.
-
-El assembler genera simultaneamente tres representaciones del mismo programa:
+## Organización relevante
 
 ```text
-sw/game.s
-  +-- sw/game.hex                                      (FPGA)
-  +-- rtl/asic/generated/pochoco_game_rom.v            (ROM + RAM reducida)
-  +-- rtl/asic/generated/pochoco_unified_ff_memory.v   (memoria unificada FF)
+sw/game.s                         programa del juego
+sw/assembler.py                   assembler y generador de memorias ASIC
+rtl/asic/asic_top.v               top-level del macro ASIC
+rtl/asic/pochoco_soc_asic.v       conexión entre Espino, memorias y periféricos
+rtl/asic/generated/               memorias generadas desde game.s
+rtl/pochoco_cycle_counter.v       contador de ciclos del juego
+librelane/                        configuración, SDC y orden de terminales
+sim/tb_game_asic.v                testbench funcional
+scripts/                          validación, corridas y recolección de métricas
 ```
 
-La metadata generada registra 111 palabras de instruccion y cero palabras de
-datos usadas por el juego. Esto ultimo se comprobo revisando que todos sus
-`lw`/`sw` apuntan a los perifericos, no a RAM interna.
+## Instalación de LibreLane en macOS
 
-### Comandos de trabajo
+### 1. Instalar Nix
 
-Los comandos de esta seccion se ejecutan desde la raiz de
-`Proyecto_3_arq`. No hace falta borrar manualmente `game.hex`: `make game`
-lo vuelve a generar cuando cambia `game.s` o `assembler.py`.
+Instale Nix desde [nixos.org](https://nixos.org/download/) y reinicie Terminal
+para que el comando `nix-shell` quede disponible.
 
-```bash
-make game          # regenera el .hex y ambas memorias ASIC
-make test          # ejecuta las 12 pruebas del assembler
-make asic-check    # elabora y sintetiza ambas arquitecturas con Yosys
-make sim-check     # compara el juego en RTL y post-sintesis, ciclo por ciclo
-```
-
-### Instalacion reproducible del flujo ASIC en macOS
-
-La implementacion fisica se probo con estas versiones exactas:
-
-- LibreLane `3.0.16`.
-- PDK `gf180mcuD`, revision Open_PDKs
-  `54435919abffb937387ec956209f9cf5fd2dfbee`.
-- Biblioteca de celdas `gf180mcu_fd_sc_mcu7t5v0`.
-
-Primero se instala Nix siguiendo el instalador oficial de
-[nixos.org](https://nixos.org/download/). Despues de cerrar y abrir Terminal,
-se descarga la version usada de LibreLane:
+### 2. Descargar LibreLane 3.0.16
 
 ```bash
 cd ~/Desktop
@@ -101,10 +67,11 @@ nix-shell
 librelane --version
 ```
 
-Los comandos siguientes deben ejecutarse dentro de ese `nix-shell`. En la
-primera corrida, LibreLane descarga automaticamente el PDK en `~/.ciel`; no
-hay que copiarlo al repositorio. En otra terminal o despues de reiniciar el
-computador se vuelve a entrar asi:
+Los comandos ASIC deben ejecutarse dentro de ese `nix-shell`. La primera
+corrida descarga automáticamente el PDK en `~/.ciel`; no se debe copiar el PDK
+ni los resultados de las corridas al repositorio.
+
+Para volver a entrar al entorno después de cerrar Terminal:
 
 ```bash
 cd ~/Desktop/LibreLane-3.0.16
@@ -112,94 +79,120 @@ nix-shell
 cd ~/Desktop/Proyecto_3_arq
 ```
 
-Si el repositorio se guardo en otra carpeta, solo cambia las dos rutas de
-`cd`. Para comprobar la instalacion y el RTL antes de una corrida larga:
+Si las carpetas se guardaron en otra ubicación, se deben reemplazar esas rutas.
+
+## Regenerar el programa desde `game.s`
+
+Desde la raíz de este repositorio:
 
 ```bash
 make game
+```
+
+El assembler produce tres representaciones del mismo programa:
+
+```text
+sw/game.hex                                      imagen usada por la FPGA
+rtl/asic/generated/pochoco_game_rom.v           ROM + RAM de datos reducida
+rtl/asic/generated/pochoco_unified_ff_memory.v  memoria unificada con flip-flops
+```
+
+También genera `rtl/asic/generated/program_metadata.json`. Para el juego actual
+registra 111 palabras de instrucciones y cero palabras de RAM de datos usadas;
+los accesos `lw` y `sw` del juego corresponden a periféricos mapeados en
+memoria.
+
+No es necesario borrar `game.hex` manualmente. Si se modifica `game.s`,
+`make game` actualiza el archivo hexadecimal y las dos memorias Verilog.
+
+## Pruebas antes de una corrida física
+
+```bash
 make test
 make asic-check
 make sim-check
 ```
 
-### Corridas fisicas y recoleccion de resultados
+- `make test` ejecuta las 12 pruebas del assembler.
+- `make asic-check` comprueba y sintetiza las dos arquitecturas con Yosys,
+  además de rechazar dependencias exclusivas de FPGA como `SB_RAM40_4K`,
+  `$readmemh` o bloques `initial`.
+- `make sim-check` compara la simulación RTL y post-síntesis para ambas
+  estrategias. El testbench verifica inicio, objetivo, respuesta incorrecta,
+  reinicio de la ronda y respuesta correcta en ciclos definidos.
 
-Una corrida recibe cuatro argumentos: estrategia de memoria, periodo en ns,
-utilizacion objetivo y nombre de la corrida. Las corridas finales a 10 MHz son:
+Los archivos temporales de simulación quedan en `build/sim/` y no se incluyen
+en Git.
+
+## Estrategias de memoria
+
+El mismo top-level permite comparar las dos alternativas exigidas:
+
+1. **ROM + RAM reducida:** `pochoco_game_rom.v` implementa el programa como
+   lógica combinacional y `pochoco_data_ram_ff.v` conserva una RAM mínima.
+2. **Memoria unificada con flip-flops:**
+   `pochoco_unified_ff_memory.v` contiene 128 palabras de 32 bits y se selecciona
+   mediante `POCHOCO_UNIFIED_MEMORY`.
+
+Las configuraciones correspondientes son `librelane/config_rom.yaml` y
+`librelane/config_unified.yaml`.
+
+## Ejecutar las corridas finales
+
+Dentro del entorno de LibreLane y desde la raíz del repositorio:
 
 ```bash
 ./scripts/run_librelane.sh rom 100 40 final_rom
 ./scripts/run_librelane.sh unified 100 40 final_unified
 ```
 
-El barrido exigido de timing (100, 80 y 60 ns) y floorplan (30, 40 y 50 %)
-se ejecuta con:
+Los argumentos del script son:
+
+```text
+run_librelane.sh <rom|unified> <periodo_ns> <utilizacion_pct> <nombre_corrida>
+```
+
+Cada nombre de corrida debe ser nuevo. Los resultados quedan localmente en
+`librelane/runs/<nombre_corrida>/`; esa carpeta está excluida de Git.
+
+Una corrida se considera cerrada solo si LibreLane completa el flujo, DRC y LVS
+están limpios, no quedan violaciones de antena sin justificar y setup y hold
+cumplen `WNS >= 0` y `TNS = 0` en los corners exigidos.
+
+## Barridos de timing y floorplan
+
+El siguiente comando ejecuta períodos de 100, 80 y 60 ns y utilizaciones de
+core de 30, 40 y 50 % para la arquitectura indicada:
 
 ```bash
 ./scripts/run_required_sweeps.sh rom
+```
+
+Para repetir el barrido con la memoria unificada:
+
+```bash
+./scripts/run_required_sweeps.sh unified
+```
+
+Después de las corridas, las métricas se reúnen con:
+
+```bash
 python3 scripts/collect_librelane_metrics.py
 ```
 
-El CSV queda en `evidence/librelane_metrics.csv`. Cada corrida conserva sus
-reportes, metricas y vistas finales bajo `librelane/runs/<nombre>/`. Para
-repetir una corrida se recomienda usar otro nombre; asi no se mezclan sus
-resultados con una anterior.
+El resumen se escribe en `evidence/librelane_metrics.csv` e incluye área,
+utilización, WNS/TNS de setup y hold, resultados de signoff y el costo académico
+estimado usando US$23 000 por mm².
 
-### Diferencia entre los dos flujos
+## Flujo FPGA y flujo ASIC
 
-- **FPGA:** `make all` sintetiza `rtl/game_top.v`, genera `game_top.bin` y lo
-  programa en la Go Board. Este flujo usa las herramientas iCE40.
-- **ASIC:** `run_librelane.sh` sintetiza `rtl/asic/asic_top.v` con las celdas
-  GF180MCU y genera layout, reportes y GDSII. No programa la placa.
-
-## Repository Structure
-
-The hardware is written in Verilog and divided into these main categories:
-
-* **The Espino Core**: The central processing unit. It includes all standard pipeline stages like instruction fetch, instruction decode, an ALU for execution, a register file, a load/store unit for memory operations, and a pipeline controller. It implements [RV32E](https://docs.riscv.org/reference/isa/v20260120/unpriv/rv32.html) with a catch you might want to check out the code for.
-* **The Pochoco SoC**: The top-level system wrapper. It connects the CPU core to a unified instruction/data RAM, physical board peripherals (like LEDs, switches, and displays), and an external SPI slave interface.
-* **Build Files**: Constraints to map the design to the physical FPGA pins, and automation scripts for synthesis, routing, and flashing using an open-source toolchain.
-
-## Memory Map
-
-The SoC routes memory and data requests using a hardcoded address decoding scheme based on the highest bits of the 32-bit address.
-
-* **`0x0000_0000` - Unified RAM**: The shared memory space for both instructions and data.
-* **`0x8000_0000` - Board Peripherals**: Memory-mapped I/O for the physical board.
-  * `Offset 0x00`: 7-Segment Displays
-  * `Offset 0x04`: LEDs
-  * `Offset 0x08`: Button Inputs
-  * `Offset 0x0C`: Free-running 32-bit cycle counter
-* **`0x8001_0000` - SPI Slave**: Custom SPI interface routing.
-  * `Offset 0x00`: SPI Status (Chip Select state, New Data flag)
-  * `Offset 0x04`: Received "Price" byte (from external master)
-  * `Offset 0x08`: "Decision" byte (written by CPU to transmit)
-
-Dive into the source code to see exactly how these components and connections are built under the hood!
-
-## How to Build
-
-To synthesize and build the project, you will need the open-source FPGA toolchain.
-
-1. Install the tools by following the instructions at the [oss-cad-suite-build repository](https://github.com/yosyshq/oss-cad-suite-build).
-2. Once installed, ~~blindly copy-paste~~ (we strongly encourage reading the Makefile first to make sure we aren't deleting your home directory) the following command in the project root to generate and program the final bitstream:
+El Proyecto 3 conserva el flujo de FPGA únicamente como referencia y para
+comprobar que el juego original sigue funcionando:
 
 ```bash
 make all
 ```
 
-## Software
-
-The `sw/` folder holds the RV32E assembly example programs that run on the Espino Core (`blink.s`, `7seg.s`, `buttons_leds.s`), plus a `Makefile` to assemble them into the `.hex` files the RTL loads at boot via `$readmemh`.
-
-You'll need a RISC-V toolchain on your `PATH` (`riscv64-unknown-elf-{as,ld,objcopy}` on Debian/Ubuntu/WSL via `sudo apt install gcc-riscv64-unknown-elf`, or `brew install riscv64-unknown-elf-gcc` on macOS). If your toolchain uses a different prefix, override it on the command line rather than editing the Makefile:
-
-```bash
-cd sw
-make blink                        # assembles blink.s -> blink.hex
-make PREFIX=riscv64-elf- blink    # if your toolchain uses a different prefix
-```
-
-Drop a new `<name>.s` file in `sw/` and `make <name>` picks it up automatically, no `Makefile` changes needed. The Project 2 game is selected by `rtl/game_top.v`.
-
-**CATCH:** The core implements [RV32E](https://docs.riscv.org/reference/isa/v20260120/unpriv/rv32.html), with one thing worth knowing: shift instructions (`SLL`/`SRL`/`SRA`/`SLLI`/`SRLI`/`SRAI`) are decoded correctly but disabled in the ALU to save LUTs on the target FPGA, so they currently execute as `ADD` instead. Avoid shifts in your assembly, or design your own shifter...
+Ese comando genera `game_top.bin` y programa la Go Board. No genera un ASIC.
+Las corridas con `scripts/run_librelane.sh` usan `asic_top.v`, celdas GF180MCU y
+producen los reportes y vistas físicas del macro, incluido el GDSII.
