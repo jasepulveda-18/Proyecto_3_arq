@@ -1,0 +1,14 @@
+rtl/espino_core/espino_alu.v
+rtl/espino_core/espino_controller.v
+rtl/espino_core/espino_core.v
+rtl/espino_core/espino_decoder.v
+rtl/espino_core/espino_id_stage.v
+rtl/espino_core/espino_if_stage.v
+rtl/espino_core/espino_load_store_unit.v
+rtl/asic/espino_register_file_asic.v
+rtl/pochoco_cycle_counter.v
+rtl/pochoco_periph.v
+rtl/pochoco_spi_slave.v
+rtl/asic/pochoco_data_ram_ff.v
+rtl/asic/pochoco_soc_asic.v
+rtl/asic/asic_top.v

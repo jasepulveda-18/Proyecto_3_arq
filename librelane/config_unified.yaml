@@ -1,0 +1,3 @@
+# Estrategia 2: memoria unificada de 128 palabras implementada con flip-flops.
+VERILOG_DEFINES:
+  - POCHOCO_UNIFIED_MEMORY

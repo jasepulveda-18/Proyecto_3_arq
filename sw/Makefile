@@ -23,16 +23,32 @@ LDFLAGS = -m elf32lriscv -Ttext=0x0 --no-relax
 SRCS  = $(wildcard *.s)
 HEXS  = $(SRCS:.s=.hex)
 PROGS = $(basename $(SRCS))
+OTHER_PROGS = $(filter-out game,$(PROGS))
 
-# El proyecto final debe usar el assembler desarrollado por el grupo.
-# Esta regla especifica que game.hex se genera con assembler.py.
-game.hex: game.s assembler.py
-	python3 assembler.py game.s game.hex
+ASIC_GEN_DIR := ../rtl/asic/generated
+GAME_ROM     := $(ASIC_GEN_DIR)/pochoco_game_rom.v
+GAME_UNIFIED := $(ASIC_GEN_DIR)/pochoco_unified_ff_memory.v
+GAME_META    := $(ASIC_GEN_DIR)/program_metadata.json
+
+# El Proyecto 3 usa siempre el assembler del grupo. Ademas del .hex para la
+# FPGA, una misma ejecucion produce las dos implementaciones ASIC de memoria.
+game.hex $(GAME_ROM) $(GAME_UNIFIED) $(GAME_META): game.s assembler.py
+	python3 assembler.py game.s game.hex \
+		--rom-verilog $(GAME_ROM) \
+		--unified-verilog $(GAME_UNIFIED) --unified-words 128 \
+		--metadata $(GAME_META)
 
 all: $(HEXS)
 
-.PHONY: $(PROGS)
-$(PROGS): %: %.hex
+.PHONY: $(OTHER_PROGS)
+$(OTHER_PROGS): %: %.hex
+
+.PHONY: game
+game:
+	python3 assembler.py game.s game.hex \
+		--rom-verilog $(GAME_ROM) \
+		--unified-verilog $(GAME_UNIFIED) --unified-words 128 \
+		--metadata $(GAME_META)
 
 %.hex: %.s
 	$(AS) $(ASFLAGS) -o $*.o $<
@@ -44,7 +60,10 @@ $(PROGS): %: %.hex
 clean:
 	rm -f *.o *.elf *.bin
 
+clean-game:
+	rm -f game.hex $(GAME_ROM) $(GAME_UNIFIED) $(GAME_META)
+
 test: game.hex
 	python3 -m unittest -v test_assembler.py
 
-.PHONY: all clean test
+.PHONY: all clean clean-game test
