@@ -1,0 +1,19 @@
+/Library/Developer/CommandLineTools/usr/bin/make -C sw test
+python3 -m unittest -v test_assembler.py
+test_7seg (test_assembler.ExampleProgramsTest) ... ok
+test_blink (test_assembler.ExampleProgramsTest) ... ok
+test_buttons_leds (test_assembler.ExampleProgramsTest) ... ok
+test_game (test_assembler.ExampleProgramsTest) ... ok
+test_game_loads_and_stores_only_use_mmio_base_registers (test_assembler.ExampleProgramsTest) ... ok
+test_equ_symbol_can_be_overridden (test_assembler.ValidationTest) ... ok
+test_generated_rom_has_no_fpga_initialization (test_assembler.ValidationTest) ... ok
+test_generated_unified_memory_checks_capacity (test_assembler.ValidationTest) ... ok
+test_generated_unified_memory_embeds_program (test_assembler.ValidationTest) ... ok
+test_rejects_registers_missing_from_rv32e (test_assembler.ValidationTest) ... ok
+test_rejects_unknown_instruction (test_assembler.ValidationTest) ... ok
+test_rejects_unknown_label (test_assembler.ValidationTest) ... ok
+
+----------------------------------------------------------------------
+Ran 12 tests in 0.010s
+
+OK

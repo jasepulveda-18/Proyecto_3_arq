@@ -1,0 +1,9 @@
+./scripts/check_asic_rtl.sh
+Auditoria ASIC correcta: sin readmemh, initial ni primitivas SB_RAM40_4K.
+Warning: Replacing memory \registers with list of registers. See rtl/asic/espino_register_file_asic.v:25
+Warning: Replacing memory \mem with list of registers. See rtl/asic/pochoco_data_ram_ff.v:28
+Warning: Replacing memory \mem with list of registers. See rtl/asic/generated/pochoco_unified_ff_memory.v:28
+Warning: Replacing memory \registers with list of registers. See rtl/asic/espino_register_file_asic.v:25
+Warning: Replacing memory \mem with list of registers. See rtl/asic/pochoco_data_ram_ff.v:28
+Warning: Replacing memory \mem with list of registers. See rtl/asic/generated/pochoco_unified_ff_memory.v:28
+ASIC RTL valido para las arquitecturas ROM+RAM y memoria unificada.

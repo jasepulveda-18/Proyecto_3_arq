@@ -1,0 +1,17 @@
+OPTIMIZACION RTL: DECODIFICADOR ESPECIALIZADO PARA GAME.S
+
+Antes: procesador con decodificacion completa de todas las instrucciones.
+Despues: la configuracion POCHOCO_GAME_MIN_ISA conserva en el ASIC solamente
+las instrucciones ejecutadas por game.s. El modo general sigue disponible.
+
+Resultado funcional: PASS; RTL y netlist optimizada coinciden.
+
+Resultado fisico (100 ns, 40 %):
+- Area sintetizada: 135101,39 -> 129172,15 um2 (-4,39 %).
+- Die: 364210 -> 348811 um2 (-4,23 %).
+- Setup tipico: 79,378085 -> 78,342689 ns de holgura.
+- Hold tipico: 0,408798 -> 0,505842 ns de holgura.
+- DRC: 0. LVS: limpio.
+
+Interpretacion: se ahorro area, pero la ruta critica aumento cerca de 1,04 ns.
+Es una optimizacion de area y no una optimizacion de frecuencia.

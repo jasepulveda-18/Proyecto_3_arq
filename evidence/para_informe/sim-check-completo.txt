@@ -1,0 +1,44 @@
+./scripts/run_functional_equivalence.sh
+EVENT startup_88 cycle=34
+EVENT first_round cycle=61
+EVENT first_target cycle=117 led=00000001
+EVENT wrong_detected cycle=137
+EVENT round_restarted cycle=171
+EVENT second_target cycle=227 led=00000001
+EVENT correct_detected cycle=345 seg=0111111_1001111
+PASS functional_game
+sim/tb_game_asic.v:120: $finish called at 34550000 (1ps)
+Warning: Replacing memory \registers with list of registers. See rtl/asic/espino_register_file_asic.v:25
+Warning: Replacing memory \mem with list of registers. See rtl/asic/pochoco_data_ram_ff.v:28
+Warning: Replacing memory \mem with list of registers. See sim/generated/pochoco_unified_ff_memory.v:28
+EVENT startup_88 cycle=34
+EVENT first_round cycle=61
+EVENT first_target cycle=117 led=00000001
+EVENT wrong_detected cycle=137
+EVENT round_restarted cycle=171
+EVENT second_target cycle=227 led=00000001
+EVENT correct_detected cycle=345 seg=0111111_1001111
+PASS functional_game
+sim/tb_game_asic.v:120: $finish called at 34550000 (1ps)
+EVENT startup_88 cycle=34
+EVENT first_round cycle=61
+EVENT first_target cycle=117 led=00000001
+EVENT wrong_detected cycle=137
+EVENT round_restarted cycle=171
+EVENT second_target cycle=227 led=00000001
+EVENT correct_detected cycle=345 seg=0111111_1001111
+PASS functional_game
+sim/tb_game_asic.v:120: $finish called at 34550000 (1ps)
+Warning: Replacing memory \registers with list of registers. See rtl/asic/espino_register_file_asic.v:25
+Warning: Replacing memory \mem with list of registers. See rtl/asic/pochoco_data_ram_ff.v:28
+Warning: Replacing memory \mem with list of registers. See sim/generated/pochoco_unified_ff_memory.v:28
+EVENT startup_88 cycle=34
+EVENT first_round cycle=61
+EVENT first_target cycle=117 led=00000001
+EVENT wrong_detected cycle=137
+EVENT round_restarted cycle=171
+EVENT second_target cycle=227 led=00000001
+EVENT correct_detected cycle=345 seg=0111111_1001111
+PASS functional_game
+sim/tb_game_asic.v:120: $finish called at 34550000 (1ps)
+Simulacion RTL y post-sintesis coinciden en ambas arquitecturas.

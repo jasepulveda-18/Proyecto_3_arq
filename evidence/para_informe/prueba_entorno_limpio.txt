@@ -1,0 +1,77 @@
+/Library/Developer/CommandLineTools/usr/bin/make -C sw game
+python3 assembler.py game.s game.hex  \
+		--rom-verilog ../rtl/asic/generated/pochoco_game_rom.v \
+		--unified-verilog ../rtl/asic/generated/pochoco_unified_ff_memory.v --unified-words 128 \
+		--metadata ../rtl/asic/generated/program_metadata.json
+/Library/Developer/CommandLineTools/usr/bin/make -C sw test
+python3 -m unittest -v test_assembler.py
+test_7seg (test_assembler.ExampleProgramsTest) ... ok
+test_blink (test_assembler.ExampleProgramsTest) ... ok
+test_buttons_leds (test_assembler.ExampleProgramsTest) ... ok
+test_game (test_assembler.ExampleProgramsTest) ... ok
+test_game_loads_and_stores_only_use_mmio_base_registers (test_assembler.ExampleProgramsTest) ... ok
+test_equ_symbol_can_be_overridden (test_assembler.ValidationTest) ... ok
+test_generated_rom_has_no_fpga_initialization (test_assembler.ValidationTest) ... ok
+test_generated_unified_memory_checks_capacity (test_assembler.ValidationTest) ... ok
+test_generated_unified_memory_embeds_program (test_assembler.ValidationTest) ... ok
+test_rejects_registers_missing_from_rv32e (test_assembler.ValidationTest) ... ok
+test_rejects_unknown_instruction (test_assembler.ValidationTest) ... ok
+test_rejects_unknown_label (test_assembler.ValidationTest) ... ok
+
+----------------------------------------------------------------------
+Ran 12 tests in 0.006s
+
+OK
+./scripts/check_asic_rtl.sh
+Auditoria ASIC correcta: sin readmemh, initial ni primitivas SB_RAM40_4K.
+Warning: Replacing memory \registers with list of registers. See rtl/asic/espino_register_file_asic.v:25
+Warning: Replacing memory \mem with list of registers. See rtl/asic/pochoco_data_ram_ff.v:28
+Warning: Replacing memory \mem with list of registers. See rtl/asic/generated/pochoco_unified_ff_memory.v:28
+Warning: Replacing memory \registers with list of registers. See rtl/asic/espino_register_file_asic.v:25
+Warning: Replacing memory \mem with list of registers. See rtl/asic/pochoco_data_ram_ff.v:28
+Warning: Replacing memory \mem with list of registers. See rtl/asic/generated/pochoco_unified_ff_memory.v:28
+ASIC RTL valido para las arquitecturas ROM+RAM y memoria unificada.
+./scripts/run_functional_equivalence.sh
+EVENT startup_88 cycle=34
+EVENT first_round cycle=61
+EVENT first_target cycle=117 led=00000001
+EVENT wrong_detected cycle=137
+EVENT round_restarted cycle=171
+EVENT second_target cycle=227 led=00000001
+EVENT correct_detected cycle=345 seg=0111111_1001111
+PASS functional_game
+sim/tb_game_asic.v:120: $finish called at 34550000 (1ps)
+Warning: Replacing memory \registers with list of registers. See rtl/asic/espino_register_file_asic.v:25
+Warning: Replacing memory \mem with list of registers. See rtl/asic/pochoco_data_ram_ff.v:28
+Warning: Replacing memory \mem with list of registers. See sim/generated/pochoco_unified_ff_memory.v:28
+EVENT startup_88 cycle=34
+EVENT first_round cycle=61
+EVENT first_target cycle=117 led=00000001
+EVENT wrong_detected cycle=137
+EVENT round_restarted cycle=171
+EVENT second_target cycle=227 led=00000001
+EVENT correct_detected cycle=345 seg=0111111_1001111
+PASS functional_game
+sim/tb_game_asic.v:120: $finish called at 34550000 (1ps)
+EVENT startup_88 cycle=34
+EVENT first_round cycle=61
+EVENT first_target cycle=117 led=00000001
+EVENT wrong_detected cycle=137
+EVENT round_restarted cycle=171
+EVENT second_target cycle=227 led=00000001
+EVENT correct_detected cycle=345 seg=0111111_1001111
+PASS functional_game
+sim/tb_game_asic.v:120: $finish called at 34550000 (1ps)
+Warning: Replacing memory \registers with list of registers. See rtl/asic/espino_register_file_asic.v:25
+Warning: Replacing memory \mem with list of registers. See rtl/asic/pochoco_data_ram_ff.v:28
+Warning: Replacing memory \mem with list of registers. See sim/generated/pochoco_unified_ff_memory.v:28
+EVENT startup_88 cycle=34
+EVENT first_round cycle=61
+EVENT first_target cycle=117 led=00000001
+EVENT wrong_detected cycle=137
+EVENT round_restarted cycle=171
+EVENT second_target cycle=227 led=00000001
+EVENT correct_detected cycle=345 seg=0111111_1001111
+PASS functional_game
+sim/tb_game_asic.v:120: $finish called at 34550000 (1ps)
+Simulacion RTL y post-sintesis coinciden en ambas arquitecturas.

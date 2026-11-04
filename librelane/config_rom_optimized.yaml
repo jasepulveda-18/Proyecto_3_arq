@@ -1,0 +1,4 @@
+# Variante de medicion solicitada por el Proyecto 3. Conserva la arquitectura
+# y el programa, pero elimina del decoder ASIC instrucciones que game.s no usa.
+VERILOG_DEFINES:
+  - POCHOCO_GAME_MIN_ISA

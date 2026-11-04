@@ -1,0 +1,171 @@
+DATOS REALES PARA REEMPLAZAR LOS RECUADROS "PENDIENTE DE MEDICION"
+
+1. COMPROBACION ASIC
+
+Resultado: APROBADO para ROM+RAM y memoria unificada.
+Archivo de evidencia: asic-check-completo.txt
+Los avisos "Replacing memory ... with list of registers" son informativos:
+Yosys implementa esas memorias mediante flip-flops; no son errores.
+
+2. COMPARACION DE MEMORIAS
+
+ROM + RAM minima:
+- Flip-flops: 831 dffrnq.
+- Area logica sintetizada: 135101,39 um2.
+- Die: 364210 um2.
+- Core: 336911 um2.
+- Utilizacion real: 47,8596 %.
+
+Memoria unificada:
+- Flip-flops: 4901 en total (3679 dffrnq + 1222 dffsnq).
+- Area logica sintetizada: 686507,09 um2.
+- Die: 1775380 um2.
+- Core: 1714950 um2.
+- Utilizacion real: 49,8911 %.
+
+Imagenes disponibles: layouts/rom_final.png y layouts/unificada_final.png.
+
+3. SINTESIS JERARQUICA
+
+- Area total estimada de asic_top: 135101,39 um2.
+- Modulo dominante: espino_register_file, 69085,14 um2 (51,14 %).
+- ALU: 9382,28 um2.
+- Contador de ciclos: 3698,91 um2 (2,74 % del total).
+- El contador contiene 32 flip-flops y la logica del sumador incremental.
+
+Top 5 de celdas fisicas de la corrida ROM:
+1. gf180mcu_fd_sc_mcu7t5v0__dffrnq_1: 831; area aproximada 62000 um2.
+2. gf180mcu_fd_sc_mcu7t5v0__nand2_1: 824; area aproximada 9040 um2.
+3. gf180mcu_fd_sc_mcu7t5v0__mux2_2: 435; area aproximada 14300 um2.
+4. gf180mcu_fd_sc_mcu7t5v0__oai21_1: 404; area aproximada 7090 um2.
+5. gf180mcu_fd_sc_mcu7t5v0__aoi22_1: 402; area aproximada 7940 um2.
+
+Evidencia: hierarchical_area.log y hierarchical_area.stdout.
+
+4. BARRIDO DE TIMING ROM
+
+Periodo 100 ns (10,0 MHz):
+- Setup tipico: WNS/TNS = 0/0; holgura real 79,378082 ns.
+- Hold tipico: WNS/TNS = 0/0; holgura real 0,408798 ns.
+- Setup lento: WNS/TNS = 0/0; holgura real 62,405022 ns.
+- Hold lento: WNS/TNS = 0/0; holgura real 1,001540 ns.
+
+Periodo 80 ns (12,5 MHz):
+- Setup tipico: WNS/TNS = 0/0; holgura real 59,378086 ns.
+- Hold tipico: WNS/TNS = 0/0; holgura real 0,408798 ns.
+- Setup lento: WNS/TNS = 0/0; holgura real 42,405033 ns.
+- Hold lento: WNS/TNS = 0/0; holgura real 1,001540 ns.
+
+Periodo 60 ns (16,7 MHz):
+- Setup tipico: WNS/TNS = 0/0; holgura real 39,378082 ns.
+- Hold tipico: WNS/TNS = 0/0; holgura real 0,408798 ns.
+- Setup lento: WNS/TNS = 0/0; holgura real 22,405029 ns.
+- Hold lento: WNS/TNS = 0/0; holgura real 1,001540 ns.
+
+El menor periodo PROBADO que cierra en todos los corners es 60 ns, equivalente
+a 16,7 MHz. No debe presentarse como limite absoluto, porque no se probaron
+periodos menores y una nueva restriccion puede cambiar placement y buffering.
+
+Ruta critica de 100 ns, esquina tipica:
+- Inicio: flip-flop _7720_, red u_soc.gen_rom_and_ram.rom_rdata_q[5].
+- Fin: flip-flop _8350_.
+- Llegada del dato: 21,213804 ns.
+- Holgura: 79,378082 ns.
+- Funcion: desde la instruccion registrada, atraviesa decode/ejecucion y termina
+  en un registro interno del procesador.
+
+5. CONSTANTES DEL JUEGO PARA 100 ns
+
+Con T = 100 ns, f = 10 MHz:
+- 3 s = 30.000.000 ciclos.
+- 1 s = 10.000.000 ciclos.
+- 0,1 s = 1.000.000 ciclos.
+
+game.s ya contiene esas constantes:
+- WAIT_3S_HI=0x01C9C y WAIT_3S_LO=896 -> 30.000.000.
+- ERROR_1S_HI=0x00989 y ERROR_1S_LO=1664 -> 10.000.000.
+- TENTH_HI=0x000F4 y TENTH_LO=576 -> 1.000.000.
+El programa ASIC ya fue regenerado con ellas.
+
+6. BARRIDO DE FLOORPLAN ROM A 100 ns
+
+30 % objetivo:
+- Die: 480820 um2; core: 449704 um2; utilizacion real: 36,5673 %.
+- Routing, DRC, LVS, antena y timing: cumplen.
+- Costo estimado: USD 11058,86.
+
+40 % objetivo:
+- Die: 364210 um2; core: 336911 um2; utilizacion real: 47,8596 %.
+- Routing, DRC, LVS, antena y timing: cumplen.
+- Costo estimado: USD 8376,83.
+
+50 % objetivo:
+- Die: 293911 um2; core: 268903 um2; utilizacion real: 58,7342 %.
+- Routing, DRC, LVS, antena y timing: cumplen.
+- Costo estimado: USD 6759,95.
+
+Entre los tres puntos probados, 50 % produce el die mas pequeno y completa el
+flujo. Sin embargo, la corrida final exigida por el enunciado sigue siendo la
+de 40 % y 100 ns; el 50 % se reporta como resultado de exploracion.
+
+7. SIMULACION FUNCIONAL
+
+Resultado: APROBADO. RTL y post-sintesis coinciden para ROM y unificada.
+Eventos reales en los cuatro casos:
+EVENT startup_88 cycle=34
+EVENT first_round cycle=61
+EVENT first_target cycle=117 led=00000001
+EVENT wrong_detected cycle=137
+EVENT round_restarted cycle=171
+EVENT second_target cycle=227 led=00000001
+EVENT correct_detected cycle=345 seg=0111111_1001111
+PASS functional_game
+
+Evidencia: sim-check-completo.txt y eventos/. Los diff son vacios.
+
+8. CAPTURAS YA PREPARADAS PARA EL PDF
+
+- Comparacion ROM y unificada: figuras_informe/comparacion_layouts.png.
+- Congestion 30/40/50: layouts/congestion/comparacion_congestion_30_40_50.png.
+- Trazabilidad fisica: layouts/layout_anotado_registros_contador_con_leyenda.png.
+  Verde = 480 bits del banco de registros; amarillo = 32 bits del contador.
+- La ALU no forma un rectangulo fisico independiente porque la corrida final
+  fue aplanada. Se debe respaldar con la sintesis jerarquica (9382,28 um2) y
+  explicar que su logica combinacional queda distribuida por el placement.
+- Figura combinada lista para esa explicacion:
+  layouts/layout_y_trazabilidad_modulos.png.
+- Pruebas: make-test-12-pruebas.txt, asic-check-completo.txt,
+  sim-check-completo.txt y prueba_entorno_limpio.txt.
+
+9. OPTIMIZACION RTL REAL Y MEDIDA
+
+Modificacion aplicada:
+- Se agrego la opcion de sintesis POCHOCO_GAME_MIN_ISA en espino_decoder.v.
+- Cuando se activa, el decodificador conserva solamente las instrucciones que
+  utiliza game.s y elimina de la logica ASIC los casos que el juego no ejecuta.
+- El procesador general no pierde instrucciones: sin esa opcion sigue usando
+  el decodificador completo. La corrida optimizada la activa mediante
+  librelane/config_rom_optimized.yaml.
+
+Comprobacion funcional:
+- La simulacion RTL y la simulacion de la netlist optimizada producen la misma
+  secuencia de eventos y terminan con PASS functional_game.
+
+Comparacion antes/despues, ROM a 100 ns y 40 %:
+- Area logica sintetizada: 135101,39 -> 129172,15 um2 (-4,39 %).
+- Area de celdas estandar final: 161244 -> 154819 um2 (-3,98 %).
+- Area del die: 364210 -> 348811 um2 (-4,23 %).
+- Holgura setup tipica: 79,378085 -> 78,342689 ns.
+- Frecuencia maxima estimada desde esa ruta: 48,49 -> 46,17 MHz.
+- Holgura setup lenta: 62,405023 -> 60,537276 ns.
+- Holgura hold tipica: 0,408798 -> 0,505842 ns.
+- DRC final: 0 -> 0; LVS final: limpio en ambas corridas.
+
+Conclusion correcta para el informe:
+La especializacion redujo el area, pero no mejoro la ruta critica. La nueva
+seleccion y ubicacion de celdas hizo que la ruta de setup fuese aproximadamente
+1,04 ns mas larga en esquina tipica. Por lo tanto, la optimizacion es util si
+el objetivo es area, pero no si el objetivo principal es frecuencia. Este es un
+resultado experimental valido y no debe reemplazarse por una mejora inventada.
+
+Evidencia: carpeta optimizacion_rtl/ y optimizacion_rtl.events.

@@ -124,11 +124,13 @@ module espino_decoder (
         rf_we_o        = 1'b1;
       end
 
+`ifndef POCHOCO_GAME_MIN_ISA
       OPCODE_AUIPC: begin
         alu_op_a_sel_o = OP_A_PC;     // rd = pc + immU
         imm_operand_o  = imm_u;
         rf_we_o        = 1'b1;
       end
+`endif
 
       OPCODE_OPIMM: begin
         alu_op_a_sel_o = OP_A_REG;
@@ -137,13 +139,15 @@ module espino_decoder (
         rf_we_o        = 1'b1;
         case (funct3)
           3'b000: alu_operator_o = ALU_ADD;   // ADDI
+          3'b111: alu_operator_o = ALU_AND;   // ANDI
+`ifndef POCHOCO_GAME_MIN_ISA
           3'b010: alu_operator_o = ALU_SLT;   // SLTI
           3'b011: alu_operator_o = ALU_SLTU;  // SLTIU
           3'b100: alu_operator_o = ALU_XOR;   // XORI
           3'b110: alu_operator_o = ALU_OR;    // ORI
-          3'b111: alu_operator_o = ALU_AND;   // ANDI
           3'b001: alu_operator_o = ALU_SLL;   // SLLI
           3'b101: alu_operator_o = funct7[5] ? ALU_SRA : ALU_SRL; // SRAI/SRLI
+`endif
           default: illegal_insn_o = 1'b1;
         endcase
       end
@@ -154,6 +158,7 @@ module espino_decoder (
         rf_we_o        = 1'b1;
         case (funct3)
           3'b000: alu_operator_o = funct7[5] ? ALU_SUB : ALU_ADD;
+`ifndef POCHOCO_GAME_MIN_ISA
           3'b001: alu_operator_o = ALU_SLL;
           3'b010: alu_operator_o = ALU_SLT;
           3'b011: alu_operator_o = ALU_SLTU;
@@ -161,6 +166,7 @@ module espino_decoder (
           3'b101: alu_operator_o = funct7[5] ? ALU_SRA : ALU_SRL;
           3'b110: alu_operator_o = ALU_OR;
           3'b111: alu_operator_o = ALU_AND;
+`endif
           default: illegal_insn_o = 1'b1;
         endcase
       end
@@ -175,11 +181,13 @@ module espino_decoder (
         lsu_req_o      = 1'b1;
         lsu_we_o       = 1'b0;
         case (funct3)
+`ifndef POCHOCO_GAME_MIN_ISA
           3'b000: begin lsu_type_o = LSU_BYTE; lsu_sign_o = 1'b1; end // LB
           3'b001: begin lsu_type_o = LSU_HALF; lsu_sign_o = 1'b1; end // LH
-          3'b010: begin lsu_type_o = LSU_WORD; lsu_sign_o = 1'b1; end // LW
           3'b100: begin lsu_type_o = LSU_BYTE; lsu_sign_o = 1'b0; end // LBU
           3'b101: begin lsu_type_o = LSU_HALF; lsu_sign_o = 1'b0; end // LHU
+`endif
+          3'b010: begin lsu_type_o = LSU_WORD; lsu_sign_o = 1'b1; end // LW
           default: illegal_insn_o = 1'b1;
         endcase
       end
@@ -192,8 +200,10 @@ module espino_decoder (
         lsu_req_o      = 1'b1;
         lsu_we_o       = 1'b1;
         case (funct3)
+`ifndef POCHOCO_GAME_MIN_ISA
           3'b000: lsu_type_o = LSU_BYTE; // SB
           3'b001: lsu_type_o = LSU_HALF; // SH
+`endif
           3'b010: lsu_type_o = LSU_WORD; // SW
           default: illegal_insn_o = 1'b1;
         endcase
@@ -207,10 +217,12 @@ module espino_decoder (
         case (funct3)
           3'b000: alu_operator_o = ALU_EQ;  // BEQ
           3'b001: alu_operator_o = ALU_NE;  // BNE
+          3'b110: alu_operator_o = ALU_LTU; // BLTU
+`ifndef POCHOCO_GAME_MIN_ISA
           3'b100: alu_operator_o = ALU_LT;  // BLT
           3'b101: alu_operator_o = ALU_GE;  // BGE
-          3'b110: alu_operator_o = ALU_LTU; // BLTU
           3'b111: alu_operator_o = ALU_GEU; // BGEU
+`endif
           default: illegal_insn_o = 1'b1;
         endcase
       end
@@ -231,6 +243,7 @@ module espino_decoder (
         if (funct3 != 3'b000) illegal_insn_o = 1'b1;
       end
 
+`ifndef POCHOCO_GAME_MIN_ISA
       OPCODE_MISC: begin
         if (funct3 != 3'b000) illegal_insn_o = 1'b1;
       end
@@ -238,6 +251,7 @@ module espino_decoder (
       OPCODE_SYSTEM: begin
         if (funct3 != 3'b000) illegal_insn_o = 1'b1;
       end
+`endif
 
       default: illegal_insn_o = 1'b1;
     endcase

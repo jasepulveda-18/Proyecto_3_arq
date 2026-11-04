@@ -1,0 +1,43 @@
+CHECKLIST REAL DEL PROYECTO 3
+
+[LISTO] Juego regenerado para ASIC a 100 ns (10 MHz).
+[LISTO] Doce pruebas del assembler.
+[LISTO] ASIC-check para ROM+RAM y memoria unificada.
+[LISTO] Sim-check RTL contra netlist para ambas memorias.
+[LISTO] Corrida final ROM, 100 ns, 40 %; DRC y LVS limpios.
+[LISTO] Corrida final unificada, 100 ns, 40 %.
+[LISTO] Barrido de timing 100/80/60 ns.
+[LISTO] Barrido de floorplan 30/40/50 %.
+[LISTO] Sintesis jerarquica, modulo dominante y fraccion del contador.
+[LISTO] Optimizacion RTL implementada, simulada y medida fisicamente.
+[LISTO] Prueba completa desde una copia temporal limpia siguiendo el README.
+[LISTO] Figuras de layouts, timing, floorplan y optimizacion.
+[LISTO] Mapas RUDY de congestion 30/40/50 %.
+[LISTO] Layout con banco de registros y contador resaltados.
+[LISTO] Figura de trazabilidad que incluye la ALU sin inventar un bloque fisico.
+
+[DECISION] El diseno final se mantiene en 40 %, 100 ns y arquitectura ROM+RAM.
+El 50 % se informa como la alternativa probada de menor area que tambien
+completo routing, no como reemplazo silencioso del diseno final.
+
+[EXPLICACION ALU] No se debe dibujar un rectangulo falso para la ALU. El flujo
+final aplana la jerarquia y distribuye su logica combinacional. Se identifica
+mediante la sintesis jerarquica (9382,28 um2) y se explica la trazabilidad.
+
+LO QUE SE ENVIA AL GRUPO
+
+Enviar evidence/para_informe.zip. Dentro contiene:
+- DATOS_PARA_REEMPLAZAR_PENDIENTES.txt para completar tablas y texto.
+- figuras_informe/ para insertar los graficos.
+- layouts/ para insertar capturas de layout y congestion.
+- reportes completos de cada corrida.
+- salidas de make test, asic-check, sim-check y entorno limpio.
+
+LO QUE AUN ES TRABAJO DEL INFORME
+
+[PENDIENTE DEL GRUPO] Insertar las figuras y reemplazar cada "pend." o recuadro
+naranjo usando los datos entregados.
+[PENDIENTE DEL GRUPO] Actualizar la conclusion con: eleccion 40 %, resultado de
+la optimizacion, sintesis jerarquica y congestion.
+[PENDIENTE DEL GRUPO] Exportar el PDF final y revisar que compile sin errores.
+[PENDIENTE DE ENTREGA] Decidir/confirmar cual repositorio y rama entregaran.

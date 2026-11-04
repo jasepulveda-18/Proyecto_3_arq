@@ -1,0 +1,8 @@
+EVENT startup_88 cycle=34
+EVENT first_round cycle=61
+EVENT first_target cycle=117 led=00000001
+EVENT wrong_detected cycle=137
+EVENT round_restarted cycle=171
+EVENT second_target cycle=227 led=00000001
+EVENT correct_detected cycle=345 seg=0111111_1001111
+PASS functional_game

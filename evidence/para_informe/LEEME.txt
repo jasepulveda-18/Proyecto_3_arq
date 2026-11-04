@@ -1,0 +1,108 @@
+CONTENIDO PARA COMPLETAR EL INFORME
+
+1. librelane_metrics.csv
+   Resumen de las seis corridas disponibles.
+
+2. eventos/
+   Eventos RTL y netlist para ROM y memoria unificada. Los pares son
+   idénticos; un diff vacío demuestra equivalencia funcional.
+
+3. Carpetas de cada corrida
+   - stat.rpt: estadísticas de síntesis.
+   - typical_max.rpt: rutas de setup en esquina típica.
+   - typical_min.rpt: rutas de hold en esquina típica.
+   - slow_max.rpt: rutas de setup en esquina lenta.
+   - slow_min.rpt: rutas de hold en esquina lenta.
+   - resolved.json: configuración efectiva de LibreLane.
+
+4. layouts/
+   Render automático de los diseños ROM y unificado. Para la entrega final
+   conviene reemplazar o acompañar estas imágenes con capturas de KLayout.
+
+5. hierarchical_area.log y hierarchical_area.stdout
+   Síntesis jerárquica mapeada a la biblioteca física GF180. Permiten
+   justificar qué módulos dominan el área y cuánto aporta el contador.
+
+6. asic-check-completo.txt y sim-check-completo.txt
+   Salidas completas de las dos verificaciones solicitadas. ASIC-check termina
+   con ambas arquitecturas válidas. Sim-check demuestra que RTL y netlist
+   sintetizada generan los mismos eventos para ROM y memoria unificada.
+
+7. figuras_informe/
+   Figuras listas en PDF y PNG: comparación de layouts, barrido de floorplan
+   y barrido temporal. Los PDF se pueden insertar directamente en LaTeX.
+
+8. DATOS_PARA_REEMPLAZAR_PENDIENTES.txt
+   Valores exactos y texto breve para completar cada tabla del informe sin
+   buscar manualmente entre los reportes.
+
+9. optimizacion_rtl/
+   Evidencia completa de la especializacion del decodificador para el juego:
+   reporte de sintesis, metricas finales, rutas de setup/hold, layout renderizado
+   y prueba funcional RTL contra netlist. La optimizacion reduce el area logica
+   4,39 %, aunque la holgura de setup tipica baja cerca de 1,04 ns.
+
+10. layouts/congestion/ y layout_anotado_registros_contador_con_leyenda.png
+    Capturas generadas directamente desde los ODB finales con OpenROAD. La
+    comparacion RUDY usa la misma escala 0-100 para 30, 40 y 50 %. La imagen
+    anotada oculta el ruteo para que se vean los 480 bits del banco de registros
+    y los 32 bits del contador.
+
+11. prueba_entorno_limpio.txt
+    Ejecucion desde una copia temporal sin build, evidence, runs ni Git. Siguiendo
+    el README se regenero el juego, pasaron las 12 pruebas, ASIC-check y
+    sim-check para las dos arquitecturas.
+
+12. capturas_terminal/
+    Imágenes listas para insertar de make test, make asic-check y make
+    sim-check. Los archivos TXT conservan el texto verificable completo.
+
+RESULTADOS PRINCIPALES
+
+- Timing ROM 100 ns: cierra setup y hold; slack de setup típico 79,378 ns
+  y lento 62,405 ns.
+- Timing ROM 80 ns: cierra setup y hold; slack de setup típico 59,378 ns
+  y lento 42,405 ns.
+- Timing ROM 60 ns: cierra setup y hold; slack de setup típico 39,378 ns
+  y lento 22,405 ns.
+- En los tres periodos: WNS/TNS agregados de setup y hold = 0/0.
+- El menor periodo probado que cierra todos los criterios es 60 ns,
+  equivalente a 16,7 MHz.
+
+- Floorplan 30 %: die 480.820 um2; utilización real 36,5673 %; signoff limpio.
+- Floorplan 40 %: die 364.210 um2; utilización real 47,8596 %; signoff limpio.
+- Floorplan 50 %: die 293.911 um2; utilización real 58,7342 %; signoff limpio.
+- Entre los tres puntos probados, 50 % es el menor die que completa el flujo.
+
+SÍNTESIS JERÁRQUICA
+
+- Área total estimada de asic_top: 135.101,39 um2.
+- Banco de registros: 69.085,14 um2 (módulo dominante, aproximadamente 51,1 %).
+- ALU: 9.382,28 um2.
+- Contador de ciclos: 3.698,91 um2 (aproximadamente 2,74 % del área total).
+- El contador se sintetiza con 32 flip-flops más la lógica combinacional del
+  sumador que incrementa el valor en cada ciclo.
+- Cinco celdas físicas más repetidas: dffrnq_1 (831), nand2_1 (824),
+  mux2_2 (435), oai21_1 (404) y aoi22_1 (402).
+
+VERIFICACIONES FUNCIONALES
+
+- make asic-check: APROBADO para ROM+RAM y memoria unificada.
+- make sim-check: APROBADO; RTL y post-síntesis coinciden en ambas estrategias.
+- Los avisos "Replacing memory ... with list of registers" son informativos:
+  indican la implementación ASIC mediante flip-flops, no una falla.
+
+OPTIMIZACIÓN RTL
+
+- Se especializó el decodificador para las instrucciones realmente usadas por
+  game.s, manteniendo intacto el procesador completo cuando no se activa la
+  opción POCHOCO_GAME_MIN_ISA.
+- Área sintetizada: 135.101,39 -> 129.172,15 um2 (-4,39 %).
+- Die: 364.210 -> 348.811 um2 (-4,23 %).
+- Slack setup típico: 79,378 -> 78,343 ns. La ruta no mejoró; se hizo cerca de
+  1,04 ns más larga por el nuevo mapeo y placement.
+- La simulación optimizada termina con PASS y el signoff físico queda sin DRC
+  ni LVS. Es una optimización de área, no de frecuencia.
+
+Nota: el CSV expresa WNS cumplido como cero. Los valores positivos de holgura
+se leen al final de los reportes max.rpt y min.rpt.

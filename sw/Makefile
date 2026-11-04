@@ -30,10 +30,15 @@ GAME_ROM     := $(ASIC_GEN_DIR)/pochoco_game_rom.v
 GAME_UNIFIED := $(ASIC_GEN_DIR)/pochoco_unified_ff_memory.v
 GAME_META    := $(ASIC_GEN_DIR)/program_metadata.json
 
+# Opciones opcionales para reemplazar constantes .equ desde la terminal.
+# Ejemplo:
+#   make game GAME_DEFINES='-D NUM_ROUNDS=5 -D AVERAGE_DIVISOR=5'
+GAME_DEFINES ?=
+
 # El Proyecto 3 usa siempre el assembler del grupo. Ademas del .hex para la
 # FPGA, una misma ejecucion produce las dos implementaciones ASIC de memoria.
 game.hex $(GAME_ROM) $(GAME_UNIFIED) $(GAME_META): game.s assembler.py
-	python3 assembler.py game.s game.hex \
+	python3 assembler.py game.s game.hex $(GAME_DEFINES) \
 		--rom-verilog $(GAME_ROM) \
 		--unified-verilog $(GAME_UNIFIED) --unified-words 128 \
 		--metadata $(GAME_META)
@@ -45,7 +50,7 @@ $(OTHER_PROGS): %: %.hex
 
 .PHONY: game
 game:
-	python3 assembler.py game.s game.hex \
+	python3 assembler.py game.s game.hex $(GAME_DEFINES) \
 		--rom-verilog $(GAME_ROM) \
 		--unified-verilog $(GAME_UNIFIED) --unified-words 128 \
 		--metadata $(GAME_META)
